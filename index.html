@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+ 
+
+<head>
+
+    <meta charset="UTF-8">
+
+ 
+
+    <meta
+
+        name="viewport"
+
+        content="width=device-width, initial-scale=1.0"
+
+    >
+
+ 
+
+    <title>战线 1937-1945 </title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%278%27 fill=%27%23252a24%27/%3E%3Ctext x=%2732%27 y=%2744%27 text-anchor=%27middle%27 font-size=%2738%27 fill=%27%23e5ddbd%27%3E%E6%88%98%3C/text%3E%3C/svg%3E">
+
+ 
+
+    <link
+
+        rel="stylesheet"
+
+        href="./style.css"
+
+    >
+
+ 
+
+    <style>
+
+        #topbar-right {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 14px;
+
+            margin-left: auto;
+
+        }
+
+        #save-system-controls {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 5px;
+
+        }
+
+        #save-system-controls button,
+
+        #save-system-controls select {
+
+            border: 1px solid #77715d;
+
+            background: #ded7bb;
+
+            color: #25271f;
+
+            padding: 4px 7px;
+
+            font: inherit;
+
+            font-size: 12px;
+
+        }
+
+        #save-system-controls button {
+
+            cursor: pointer;
+
+        }
+
+        #save-system-controls button:disabled {
+
+            opacity: .45;
+
+            cursor: default;
+
+        }
+
+    </style>
+
+ 
+
+</head>
+
+ 
+
+ 
+
+<body>
+
+ 
+
+
+<div id="mainMenu" class="game-overlay main-menu-overlay">
+  <div class="main-menu-card">
+    <div class="main-menu-kicker">营·连级历史战争推演</div>
+    <h1>战线 1937–1945</h1>
+    <div class="main-menu-version">V0.7.2.2</div>
+    <button id="menuNewGame">开始新战役</button>
+    <button id="menuContinue">继续游戏</button>
+    <button id="menuLoad">读取存档</button>
+    <button id="menuSettings">游戏设置</button>
+    <button id="menuAbout">关于游戏</button>
+  </div>
+</div>
+<div id="saveLoadModal" class="game-overlay modal-overlay" hidden>
+ <div class="save-modal-card"><h2 id="saveModalTitle">存档</h2><div id="saveSlotCards"></div>
+ <div class="save-modal-actions"><button id="importSaveButton">导入存档</button><input id="importSaveFile" type="file" accept="application/json,.json" hidden><button id="closeSaveModal">关闭</button></div></div>
+</div>
+<div id="pauseMenu" class="game-overlay modal-overlay" hidden>
+ <div class="pause-card"><h2>游戏菜单</h2><button id="pauseResume">继续游戏</button><button id="pauseSave">保存游戏</button><button id="pauseLoad">读取游戏</button><button id="pauseMain">返回主界面</button></div>
+</div>
+
+<div id="game">
+
+ 
+
+    <!-- ====================================== -->
+
+    <!-- 顶部状态栏 -->
+
+    <!-- ====================================== -->
+
+ 
+
+    <header id="topbar">
+
+ 
+
+        <div>
+
+            <strong>
+
+                战线 1937-1945
+
+            </strong>
+
+ 
+
+            <span class="subtitle">
+
+                营·连级历史战争推演 · V0.5
+
+            </span>
+
+        </div>
+
+ 
+
+ 
+
+        <div id="topbar-right">
+
+            <div id="turnInfo">
+
+                正在加载战役…
+
+            </div>
+
+ 
+
+            <div id="save-system-controls" aria-label="存档与撤销">
+
+                <select id="save-slot-select" aria-label="存档槽位">
+
+                    <option value="1">存档 1</option>
+
+                    <option value="2">存档 2</option>
+
+                    <option value="3">存档 3</option>
+
+                    
+
+                </select>
+
+                <button id="save-game-button" type="button">保存</button>
+
+                <button id="load-game-button" type="button">读取</button>
+
+                <button id="undo-game-button" type="button">撤销</button>
+                <button id="menu-game-button" type="button">≡ 菜单</button>
+
+            </div>
+
+        </div>
+
+ 
+
+    </header>
+
+ 
+
+ 
+
+    <!-- ====================================== -->
+
+    <!-- 游戏主体 -->
+
+    <!-- ====================================== -->
+
+ 
+
+    <main id="main">
+        <section id="mapArea">
+            <canvas id="game-canvas"></canvas>
+            <section id="terrainFloat" aria-label="地块信息">
+                <h2>地块信息</h2>
+                <div id="hexInfoPanel" class="hex-info-panel"><p class="hint">点击地块查看信息</p></div>
+            </section>
+            <section id="unitFloat" aria-label="单位信息">
+                <div class="unit-float-title">单位信息</div>
+                <div id="engineerActions" class="engineer-actions" hidden>
+                    <button id="buildFortButton" type="button">构筑工事</button><button id="layMineButton" type="button">布置地雷</button><button id="clearMineButton" type="button">排除地雷</button>
+                </div>
+                <div id="unitInfo"><p class="hint">点击地图上的单位查看详情</p></div>
+            </section>
+        </section>
+        <aside id="operationPanel" aria-label="作战信息">
+            <h2>作战信息</h2>
+            <div id="turnPanel"><div class="turn-row"><span>回合</span><strong id="turnNumber">第1回合</strong></div><div class="turn-row"><span>时间</span><strong id="turnTime">08:00—14:00</strong></div><div class="turn-row"><span>行动方</span><strong id="turnPhase">正在加载…</strong></div><button id="endPhaseButton" type="button">结束回合</button></div>
+            <div id="strategicObjectives"></div>
+            <div id="reinforcementPanel" class="reinforcement-panel" hidden><h3>增援</h3><div class="reinforcement-scroll"><div class="reinforcement-section-label">待到达</div><div id="reinforcementNext"></div><div class="reinforcement-section-label reinforcement-log-label">到达记录</div><div id="reinforcementLog"></div></div></div>
+            <div class="operation-help"><h3>地图操作</h3><p>鼠标拖动：移动地图</p><p>滚轮：缩放</p><p>ESC：取消选择</p><p>E：结束当前行动阶段</p></div>
+        </aside>
+    </main>
+
+ 
+
+</div>
+
+ 
+
+ 
+
+<!-- ====================================== -->
+
+<!-- 游戏入口 -->
+
+<!-- ====================================== -->
+
+ 
+
+<script
+
+    type="module"
+
+    src="./src/main.js">
+
+</script>
+
+ 
+
+ 
+
+</body>
+
+ 
+
+</html>
+
